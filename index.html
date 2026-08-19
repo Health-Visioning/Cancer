@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cumulative Cell Divisions by Organ — A Cancer Development Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --panel:#F7F8F6;
+    --panel-2:#EDEFEB;
+    --border:#D8DCD6;
+    --text:#16211C;
+    --muted:#5B6B63;
+    --healthy:#1B8F82;
+    --hit:#C97C15;
+    --mutagen:#D9642F;
+    --cancer:#C43F30;
+    --repair:#3F8F3A;
+    --display:'Fraunces', serif;
+    --body:'IBM Plex Sans', sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--body); line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .page{ max-width:1040px; margin:0 auto; padding:56px 24px 88px; }
+
+  .hero{ max-width:760px; margin-bottom:36px; }
+  .eyebrow{
+    font-family:var(--mono); text-transform:uppercase; letter-spacing:.14em;
+    font-size:12px; color:var(--healthy); margin:0 0 16px;
+  }
+  .hero h1{
+    font-family:var(--display); font-weight:600; letter-spacing:-0.01em;
+    font-size:clamp(28px,4.6vw,46px); line-height:1.1; margin:0 0 18px;
+  }
+  .hero .subhead{ color:var(--muted); font-size:16.5px; max-width:64ch; margin:0; }
+
+  /* Chart panel */
+  .chart-panel{
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:24px; margin-bottom:20px;
+  }
+  .chart-header{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+  .chart-title{
+    font-family:var(--mono); font-size:11px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--muted); margin:0;
+  }
+  .sim-controls-row{ display:flex; gap:10px; }
+  .btn-primary, .btn-ghost{
+    font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+    padding:9px 16px; border-radius:5px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--healthy); color:#fff; border-color:var(--healthy); font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ background:transparent; color:var(--muted); border-color:var(--border); }
+  .btn-ghost:hover{ color:var(--text); border-color:var(--muted); }
+  button:focus-visible, input:focus-visible{ outline:2px solid var(--healthy); outline-offset:2px; }
+
+  .chart-svg{ width:100%; height:auto; display:block; }
+  .axis-line{ stroke:var(--border); stroke-width:1.5; }
+  .grid-line{ stroke:var(--border); stroke-width:1; opacity:.6; }
+  .axis-label{ font-family:var(--mono); font-size:11px; fill:var(--muted); }
+  .axis-title{ font-family:var(--mono); font-size:12px; fill:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .organ-line{ fill:none; stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round; }
+  .age-cursor{ stroke:var(--text); stroke-width:1; stroke-dasharray:3,3; opacity:.4; }
+  .event-hit{ fill:var(--hit); stroke:#fff; stroke-width:1; }
+  .event-cancer{ fill:var(--cancer); stroke:#fff; stroke-width:1.5; }
+
+  .stats-row{
+    display:flex; flex-wrap:wrap; gap:22px; margin-top:16px; padding-top:14px;
+    border-top:1px solid var(--border);
+  }
+  .stat-inline{ font-size:13px; color:var(--muted); }
+  .stat-inline b{ font-family:var(--mono); color:var(--text); font-weight:600; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:10px 20px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+  .legend-item{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .legend-swatch{ width:14px; height:3px; border-radius:2px; flex-shrink:0; }
+  .legend-name{ color:var(--text); font-weight:500; }
+  .legend-rate{ font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+  .legend-status{ font-family:var(--mono); font-size:11px; padding:1px 6px; border-radius:3px; }
+  .legend-status.ok{ color:var(--muted); }
+  .legend-status.hit{ color:var(--hit); background:rgba(201,124,21,.12); }
+  .legend-status.cancer{ color:var(--cancer); background:rgba(196,63,48,.12); font-weight:600; }
+
+  /* Controls */
+  .controls-section{ margin-bottom:44px; }
+  .controls-section h2{ font-family:var(--display); font-weight:600; font-size:22px; margin:0 0 18px; }
+  .controls-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .controls-grid{ grid-template-columns:1fr; } }
+  .control{ background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
+  .control-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:4px; }
+  .control-label{ font-size:14px; font-weight:600; }
+  .control-tag{
+    font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); background:var(--panel-2); padding:3px 7px; border-radius:3px; white-space:nowrap;
+  }
+  .control-readout{ font-family:var(--mono); font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .control-desc{ font-size:13px; color:var(--muted); margin:10px 0 0; }
+  input[type=range]{ width:100%; accent-color:var(--healthy); }
+
+  .toggle-row{ display:flex; align-items:center; gap:12px; margin-top:2px; }
+  .switch{ position:relative; display:inline-block; width:40px; height:22px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider-track{
+    position:absolute; inset:0; cursor:pointer; background:var(--panel-2);
+    border:1px solid var(--border); border-radius:20px; transition:.2s;
+  }
+  .slider-track::before{
+    content:""; position:absolute; height:16px; width:16px; left:2px; top:2px;
+    background:var(--muted); border-radius:50%; transition:.2s;
+  }
+  .switch input:checked + .slider-track{ background:rgba(201,124,21,.2); border-color:var(--hit); }
+  .switch input:checked + .slider-track::before{ transform:translateX(18px); background:var(--hit); }
+  .toggle-state{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+
+  /* Explainer cards */
+  .explainer-section{ margin-bottom:44px; }
+  .explainer-section h2{ font-family:var(--display); font-weight:600; font-size:22px; margin:0 0 18px; }
+  .card-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (max-width:640px){ .card-grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:20px; }
+  .card.wide{ grid-column:1 / -1; }
+  .card h3{ font-family:var(--display); font-size:16.5px; font-weight:600; margin:0 0 8px; display:flex; align-items:center; gap:9px; }
+  .tag-dot{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+  .card p{ font-size:13.5px; color:var(--muted); margin:0; }
+
+  .note{ border-top:1px solid var(--border); padding-top:20px; font-size:13px; color:var(--muted); max-width:76ch; }
+  .note strong{ color:var(--text); }
+  .note p{ margin:0 0 10px; }
+  .note p:last-child{ margin-bottom:0; }
+
+  .limitations{ margin-top:32px; padding-top:20px; border-top:1px solid var(--border); }
+  .limitations h2{ font-family:var(--display); font-weight:600; font-size:18px; margin:0 0 14px; }
+  .limitations ul{ margin:0; padding-left:20px; }
+  .limitations li{ font-size:13px; color:var(--muted); margin-bottom:10px; line-height:1.55; }
+  .limitations li:last-child{ margin-bottom:0; }
+  .limitations li strong{ color:var(--text); }
+
+  .references{ margin-top:32px; padding-top:20px; border-top:1px solid var(--border); }
+  .references h2{ font-family:var(--display); font-weight:600; font-size:18px; margin:0 0 14px; }
+  .references ol{ margin:0 0 12px; padding-left:22px; }
+  .references li{ font-size:12.5px; color:var(--muted); margin-bottom:8px; line-height:1.5; }
+  .references li em{ font-style:italic; color:var(--text); }
+  .ref-note{ font-size:12px; color:var(--muted); margin:0; max-width:76ch; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">A cancer development simulation</p>
+    <h1>Run a lifetime of cell division, year by year.</h1>
+    <p class="subhead">Over a lifetime the human body goes through an enormous number of cell divisions to keep us alive. In this simplified example we will use the throwing of two dice to represent the process of cell division: most rolls are safe, but two disabling ones or "hits" in the same cell can turn it cancerous. Age advances like a clock, from 0 to 100. Each organ's line climbs at its own cell division rate, and small markers appear on a line the moment a replication error slips through uncaught. A second marker on the same organ means a cell has collected two hits and turned cancerous — after which that organ's line steepens, since cancer cells ignore normal growth control. Use the four controls below to test different scenarios.</p>
+  </header>
+
+  <div class="chart-panel">
+    <div class="chart-header">
+      <p class="chart-title">Cumulative cell divisions vs. age, by organ</p>
+      <div class="sim-controls-row">
+        <button id="playPause" class="btn-primary" type="button">Pause</button>
+        <button id="resetBtn" class="btn-ghost" type="button">Reset</button>
+      </div>
+    </div>
+
+    <svg class="chart-svg" id="chartSvg" viewBox="0 0 920 480" role="img" aria-label="Animated line chart of cumulative cell divisions from age 0 to 80 for ten organs, with markers showing replication errors and cancer formation"></svg>
+
+    <div class="stats-row">
+      <span class="stat-inline">Age: <b id="statAge">0</b></span>
+      <span class="stat-inline">Organs with one hit: <b id="statHit">0</b></span>
+      <span class="stat-inline">Organs with cancer: <b id="statCancer">0</b></span>
+      <span class="stat-inline">First tumor: <b id="statFirst">—</b></span>
+    </div>
+
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <section class="controls-section">
+    <h2>Change the odds</h2>
+    <div class="controls-grid">
+
+      <div class="control">
+        <div class="control-top">
+          <span class="control-label">Systemic roll frequency</span>
+          <span class="control-tag">chronic inflammation</span>
+        </div>
+        <div class="control-readout">by age 100: division burden ×<span id="agingMult">5.3</span></div>
+        <input type="range" id="agingSlider" min="0" max="100" value="50">
+        <p class="control-desc">This doesn't act like a flat rate. Chronic low-grade inflammation — from obesity, chronic disease, or ordinary aging (inflammaging) — compounds over time, barely noticeable in youth, then accelerating sharply after midlife. This is separate from immune surveillance below; it only affects how often cells divide, not how well errors get caught.</p>
+      </div>
+
+      <div class="control">
+        <div class="control-top">
+          <span class="control-label">Mutagen exposure</span>
+          <span class="control-tag">smoking, UV, alcohol</span>
+        </div>
+        <div class="control-readout">peak mutation rate ×<span id="mutagenMultDisplay">3.1</span> — reached only after decades of continued exposure</div>
+        <input type="range" id="mutagenSlider" min="0" max="100" value="15">
+        <p class="control-desc">Represents direct DNA-damaging exposures as a group — tobacco smoke, cumulative UV, heavy alcohol use — which act by different biological routes but share a common pattern: risk depends heavily on how long exposure continues, not just its intensity. The duration curve here is calibrated to the best-characterized example, cigarette smoking (Doll &amp; Peto, 1978), as an illustrative stand-in for this class of exposures.</p>
+      </div>
+
+      <div class="control">
+        <div class="control-top">
+          <span class="control-label">Repair &amp; immune surveillance</span>
+          <span class="control-tag">the referee</span>
+        </div>
+        <div class="control-readout">baseline <span id="repairVal">65</span>% catch rate — down to <span id="repairAgeDisplay">36</span>% by age 100</div>
+        <input type="range" id="repairSlider" min="0" max="100" value="65">
+        <p class="control-desc">This is the single control over how good your repair and immune surveillance are. Most double-ones never survive to matter — repair enzymes and the immune system catch and clear damaged cells before a second hit can land. Whatever baseline you set here still erodes somewhat with age (immunosenescence, from thymic involution and declining T-cell output), which happens to nearly everyone regardless of the aging slider above.</p>
+      </div>
+
+      <div class="control">
+        <div class="control-top">
+          <span class="control-label">Loaded die</span>
+          <span class="control-tag">inherited mutation</span>
+        </div>
+        <div class="toggle-row">
+          <label class="switch">
+            <input type="checkbox" id="inheritedToggle">
+            <span class="slider-track"></span>
+          </label>
+          <span class="toggle-state" id="toggleState">Off — no inherited risk</span>
+        </div>
+        <p class="control-desc">Some people are born with one hit already present in every cell, in every organ — like starting with a die that already shows a one. Only one more unlucky roll is needed, not two. Toggling this restarts the simulation.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="explainer-section">
+    <h2>Why this maps to real biology</h2>
+    <div class="card-grid">
+
+      <div class="card wide">
+        <h3><span class="tag-dot" style="background:var(--cancer)"></span>Two hits, not one</h3>
+        <p>Most cancers need more than one specific mutation to land in the same cell before it turns dangerous — a single hit usually does nothing on its own. This two-hit pattern is why each organ's first marker (amber) doesn't change its trajectory, but the second marker (red) does: that's the point a cell's growth control breaks down.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag-dot" style="background:var(--healthy)"></span>Why steeper lines matter</h3>
+        <p>The number of stem-cell divisions a tissue accumulates over a lifetime correlates strongly with its cancer risk. Fast-turnover organs like colon and skin climb steeply and get more chances to roll badly — independent of any exposure — which is part of why they're diagnosed with cancer far more often than slow-turnover organs like heart or brain.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag-dot" style="background:var(--healthy)"></span>Why age accelerates, not just adds</h3>
+        <p>Cancer incidence rises with age roughly as a power law, not a straight line — a pattern first described by the Armitage-Doll multistage model in 1954 and still used today. This model splits that into two separate mechanisms so they don't overlap: chronic inflammation (inflammaging) — from obesity, chronic disease, or aging itself — raises how often cells divide, while immunosenescence, the age-related decline in immune surveillance and repair capacity, is applied as a fixed decline that erodes whatever repair baseline you've set, for everyone, regardless of the inflammation slider.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag-dot" style="background:var(--hit)"></span>Loaded dice</h3>
+        <p>Inherited mutations like BRCA1/2 give every cell a head start — one hit already present at birth — so only one more unlucky roll is needed. Turn this on and watch cancer markers appear earlier and more often across organs.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag-dot" style="background:var(--mutagen)"></span>Weighted dice</h3>
+        <p>Smoking, cumulative UV, and heavy alcohol use all raise the odds of a bad roll on every division — but only once exposure has been underway for years, and the effect compounds the longer it continues. Push this slider up and the biggest difference shows up in later decades, not childhood, mirroring how smoking-related cancer risk depends far more on duration of exposure than daily intensity (Doll &amp; Peto, 1978).</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag-dot" style="background:var(--repair)"></span>The referee</h3>
+        <p>DNA repair enzymes and the immune system catch and clear most damaged cells before a second hit lands. This slider is the only control over that baseline capacity — turn it down and previously "safe" organs start accumulating markers too. Age still erodes whatever baseline you set, since immune function declines somewhat in nearly everyone over time.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="note">
+    <p><strong>This is a simplified teaching model, not a simulation of any specific cancer or organ.</strong> The relative division rates (0.03 for brain up to 1.00 for colon lining), the shape of the inflammaging/immunosenescence age curves, the mutagen exposure-duration curve, and the cancer growth multiplier are illustrative approximations that reflect documented directional patterns and published exponents where noted below — not measured, cancer-specific parameters for any individual or disease.</p>
+    <p>Real cancer risk depends on many more genes, tissue-specific biology, and individual variation than this two-hit, ten-organ model can capture. The goal here is intuition for how replication rate, mutagens, repair, aging, and inherited risk interact — not a risk calculator.</p>
+  </footer>
+
+  <section class="limitations">
+    <h2>What this simulation is missing</h2>
+    <ul>
+      <li><strong>Only two hits.</strong> Real cancers, especially common epithelial ones, typically need something closer to 4–6 cooperating mutations. The two-hit model here is a simplification for teachability, not a realistic mutation count.</li>
+      <li><strong>No detection or screening.</strong> Real medicine catches and removes many precancerous changes (colonoscopy, mammograms, Pap smears) before they become cancer. This model has no "caught it early" mechanism — every hit that lands stays landed.</li>
+      <li><strong>No infectious causes.</strong> A meaningful share of cancers worldwide are linked to viruses or bacteria (HPV&rarr;cervical, hepatitis B/C&rarr;liver, H. pylori&rarr;stomach). None of that is represented — the model only covers replication error, inflammation, mutagens, and inherited risk.</li>
+      <li><strong>No hormonal or reproductive biology.</strong> Breast and prostate cancer risk are heavily shaped by lifetime hormone exposure (puberty, pregnancy, menopause, androgen levels). The model treats every organ like it has a flat division rate.</li>
+      <li><strong>One cell lineage per organ, not a population.</strong> Real organs contain millions of independently dividing cells, any one of which could go wrong. Tracking one representative lineage per organ understates how many chances a real organ actually gets.</li>
+      <li><strong>No tumor suppression after formation.</strong> Real immune systems sometimes recognize and eliminate early cancer cells even after a second hit (immune editing). Once an organ turns red here, it's permanent and just keeps growing.</li>
+      <li><strong>Single run, not a distribution.</strong> One pass through the simulation is one possible life story, not a probability. Running it many times would give a truer sense of likelihood than any single pass.</li>
+    </ul>
+  </section>
+
+  <section class="references">
+    <h2>References</h2>
+    <ol>
+      <li>Armitage P, Doll R. The age distribution of cancer and a multi-stage theory of carcinogenesis. <em>Br J Cancer</em>. 1954;8(1):1–12.</li>
+      <li>Knudson AG Jr. Mutation and cancer: statistical study of retinoblastoma. <em>Proc Natl Acad Sci USA</em>. 1971;68(4):820–823.</li>
+      <li>Doll R, Peto R. Cigarette smoking and bronchial carcinoma: dose and time relationships among regular smokers and lifelong non-smokers. <em>J Epidemiol Community Health</em>. 1978;32(4):303–313.</li>
+      <li>Peto R, Roe FJC, Lee PN, Levy L, Clack J. Cancer and ageing in mice and men. <em>Br J Cancer</em>. 1975;32(4):411–426.</li>
+      <li>Tomasetti C, Vogelstein B. Variation in cancer risk among tissues can be explained by the number of stem cell divisions. <em>Science</em>. 2015;347(6217):78–81.</li>
+      <li>Morales-Valencia J, David G. The contribution of physiological and accelerated aging to cancer progression through senescence-induced inflammation. <em>Front Oncol</em>. 2021;11:747822.</li>
+      <li>Age-associated differences in the cancer molecular landscape. <em>Trends Cancer</em>. 2022;8(11):962–979.</li>
+      <li>Deng T, Lyon CJ, Bergin S, Caligiuri MA, Hsueh WA. Obesity, inflammation, and cancer. <em>Annu Rev Pathol</em>. 2016;11:421–449.</li>
+    </ol>
+    <p class="ref-note">Citations reflect the general, directional patterns used to shape this model (e.g., that risk rises as a power law with age, that smoking risk depends more on duration than dose, that stem-cell division rate correlates with tissue-level cancer risk). Specific numeric constants in the simulation are illustrative, not the original studies' exact fitted values.</p>
+    <p class="ref-note">&copy; 2026</p>
+  </section>
+
+</div>
+
+<script>
+  const ORGANS = [
+    { id:'brain',   name:'Brain',        rate:0.03, color:'#375D7A' },
+    { id:'heart',   name:'Heart',        rate:0.05, color:'#7A4FA0' },
+    { id:'kidney',  name:'Kidney',       rate:0.12, color:'#2F8F46' },
+    { id:'liver',   name:'Liver',        rate:0.18, color:'#A6752D' },
+    { id:'lung',    name:'Lung',         rate:0.22, color:'#1B8F82' },
+    { id:'pancreas',name:'Pancreas',     rate:0.28, color:'#B58B12' },
+    { id:'prostate',name:'Prostate',     rate:0.35, color:'#3B62C4' },
+    { id:'breast',  name:'Breast',       rate:0.45, color:'#C4487C' },
+    { id:'skin',    name:'Skin',         rate:0.70, color:'#D9642F' },
+    { id:'colon',   name:'Colon lining', rate:1.00, color:'#C43F30' }
+  ];
+
+  const MAX_AGE = 100;
+  const SCALE = 100;          // relative divisions per year at rate = 1.0
+  const CANCER_MULT = 3;      // uncontrolled growth multiplier once cancerous
+  const BASE_P = 0.0000333;   // baseline per-division chance of an uncaught disabling hit
+
+  const PAD_LEFT = 70, PAD_RIGHT = 20, PAD_TOP = 20, PAD_BOTTOM = 50;
+  const W = 920, H = 480;
+  const chartW = W - PAD_LEFT - PAD_RIGHT;
+  const chartH = H - PAD_TOP - PAD_BOTTOM;
+
+  const svg = document.getElementById('chartSvg');
+  const ns = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const agingSlider = document.getElementById('agingSlider');
+  const mutagenSlider = document.getElementById('mutagenSlider');
+  const repairSlider = document.getElementById('repairSlider');
+  const inheritedToggle = document.getElementById('inheritedToggle');
+  const playPauseBtn = document.getElementById('playPause');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let age = 0;
+  let isPlaying = true;
+  let tickHandle = null;
+  let firstTumor = null;
+  let runningMax = MAX_AGE * SCALE * 0.35; // starting floor for y-axis, rescaled as organs grow
+
+  function initOrgans(){
+    const inherited = inheritedToggle.checked;
+    ORGANS.forEach(o => {
+      o.state = inherited ? 1 : 0;
+      o.cumulative = [0];
+      o.events = []; // {age, value, type}
+    });
+  }
+
+  function getParams(){
+    const mutagenVal = +mutagenSlider.value;
+    const repairVal = +repairSlider.value;
+    const agingVal = +agingSlider.value;
+    return {
+      mutagenMult: 1 + (mutagenVal/100) * 14,      // 1x at 0% up to 15x at 100%
+      repairCatchBase: (repairVal/100) * 0.97,     // fraction of bad rolls caught, before age erosion
+      agingVal
+    };
+  }
+
+  // Inflammaging: chronic low-grade inflammation compounds with age, raising effective division
+  // pressure — not a flat rate. Modeled as a power-law ramp, consistent with the well-documented
+  // exponential/power-law rise in cancer incidence with age (Armitage-Doll multistage model;
+  // inflammaging literature on senescent-cell SASP burden).
+  function inflammFactor(age, agingVal){
+    const strength = 0.5 + (agingVal/100) * 7.5; // 0.5x to 8x added burden by age 100
+    return 1 + strength * Math.pow(age / 100, 2);
+  }
+
+  // Immunosenescence: DNA repair and immune surveillance capacity erode with age (thymic
+  // involution, declining T-cell output) for essentially everyone, independent of how much
+  // extra inflammation someone is carrying. This is intentionally NOT tied to the aging slider —
+  // it's a fixed biological decline applied on top of whatever baseline capacity the "Repair &
+  // immune surveillance" slider sets, so that slider remains the single control over immune
+  // surveillance's adjustable baseline, and this age curve just erodes it as time passes.
+  function immuneAgeFactor(age){
+    const strength = 0.45; // fixed: erodes up to 45% of repair capacity by age 100, for everyone
+    return Math.max(0.4, 1 - strength * Math.pow(age / 100, 1.5));
+  }
+
+  // Mutagen exposure represents smoking, UV, and alcohol collectively — direct DNA-damaging
+  // exposures that are cumulative, not present from birth. The classic British Doctors Study
+  // found lung-cancer incidence scaling with roughly (duration of smoking)^4.5 and an onset age
+  // around 22.5 (Doll & Peto, 1978); that curve is used here as the best-characterized, illustrative
+  // stand-in for this exposure class generally — heavy exposure barely matters until it starts,
+  // then compounds steeply the longer it continues.
+  const EXPOSURE_ONSET_AGE = 22.5;
+  const EXPOSURE_DURATION_EXPONENT = 4.5;
+  function mutagenDurationFactor(age){
+    if (age <= EXPOSURE_ONSET_AGE) return 0;
+    const duration = age - EXPOSURE_ONSET_AGE;
+    const maxDuration = MAX_AGE - EXPOSURE_ONSET_AGE;
+    return Math.pow(duration / maxDuration, EXPOSURE_DURATION_EXPONENT);
+  }
+
+  function resetAll(){
+    age = 0;
+    firstTumor = null;
+    runningMax = MAX_AGE * SCALE * 0.35;
+    initOrgans();
+    draw();
+    updateStats();
+  }
+
+  function tick(){
+    if (age >= MAX_AGE){ stopLoop(); isPlaying = false; playPauseBtn.textContent = 'Play'; return; }
+    age++;
+    const { mutagenMult, repairCatchBase, agingVal } = getParams();
+    const mutagenMultEffective = 1 + (mutagenMult - 1) * mutagenDurationFactor(age);
+    const divisionMultiplier = 0.5 * inflammFactor(age, agingVal);
+    const repairCatch = repairCatchBase * immuneAgeFactor(age);
+    const pUncaughtPerDivision = BASE_P * mutagenMultEffective * (1 - repairCatch);
+
+    ORGANS.forEach(o => {
+      const growthMult = o.state === 2 ? CANCER_MULT : 1;
+      const divisionsThisYear = Math.max(0, o.rate * SCALE * divisionMultiplier * growthMult);
+      const prevVal = o.cumulative[o.cumulative.length - 1];
+      const newVal = prevVal + divisionsThisYear;
+      o.cumulative.push(newVal);
+      if (newVal > runningMax) runningMax = newVal;
+
+      if (o.state < 2){
+        const pHitThisYear = 1 - Math.pow(1 - pUncaughtPerDivision, divisionsThisYear);
+        if (Math.random() < pHitThisYear){
+          o.state++;
+          o.events.push({ age, value: newVal, type: o.state === 2 ? 'cancer' : 'hit' });
+          if (o.state === 2 && firstTumor === null){
+            firstTumor = { organ: o.name, age };
+          }
+        }
+      }
+    });
+
+    draw();
+    updateStats();
+  }
+
+  function xScale(a){ return PAD_LEFT + (a / MAX_AGE) * chartW; }
+  function yScale(v){ return PAD_TOP + chartH - (v / runningMax) * chartH; }
+
+  function niceStep(maxVal){
+    const raw = maxVal / 8;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    let step;
+    if (norm < 1.5) step = 1;
+    else if (norm < 3) step = 2;
+    else if (norm < 7) step = 5;
+    else step = 10;
+    return step * mag;
+  }
+
+  function draw(){
+    svg.innerHTML = '';
+    const yStep = niceStep(runningMax);
+
+    for (let v = 0; v <= runningMax; v += yStep){
+      const y = yScale(v);
+      svg.appendChild(el('line', { x1:PAD_LEFT, x2:W-PAD_RIGHT, y1:y, y2:y, class:'grid-line' }));
+      const label = el('text', { x:PAD_LEFT-10, y:y+4, 'text-anchor':'end', class:'axis-label' });
+      label.textContent = Math.round(v).toLocaleString();
+      svg.appendChild(label);
+    }
+
+    for (let a = 0; a <= MAX_AGE; a += 10){
+      const x = xScale(a);
+      svg.appendChild(el('line', { x1:x, x2:x, y1:PAD_TOP, y2:PAD_TOP+chartH, class:'grid-line' }));
+      const label = el('text', { x:x, y:PAD_TOP+chartH+22, 'text-anchor':'middle', class:'axis-label' });
+      label.textContent = a;
+      svg.appendChild(label);
+    }
+
+    svg.appendChild(el('line', { x1:PAD_LEFT, x2:PAD_LEFT, y1:PAD_TOP, y2:PAD_TOP+chartH, class:'axis-line' }));
+    svg.appendChild(el('line', { x1:PAD_LEFT, x2:W-PAD_RIGHT, y1:PAD_TOP+chartH, y2:PAD_TOP+chartH, class:'axis-line' }));
+
+    const xTitle = el('text', { x:PAD_LEFT+chartW/2, y:H-8, 'text-anchor':'middle', class:'axis-title' });
+    xTitle.textContent = 'Age (years)';
+    svg.appendChild(xTitle);
+
+    const yTitle = el('text', {
+      x:0, y:0, 'text-anchor':'middle', class:'axis-title',
+      transform:'translate(18,' + (PAD_TOP+chartH/2) + ') rotate(-90)'
+    });
+    yTitle.textContent = 'Cumulative cell divisions (relative units)';
+    svg.appendChild(yTitle);
+
+    const copyright = el('text', { x:W-PAD_RIGHT, y:H-8, 'text-anchor':'end', class:'axis-label' });
+    copyright.textContent = '\u00A9 2026';
+    svg.appendChild(copyright);
+
+    if (age > 0){
+      const cx = xScale(age);
+      svg.appendChild(el('line', { x1:cx, x2:cx, y1:PAD_TOP, y2:PAD_TOP+chartH, class:'age-cursor' }));
+    }
+
+    const sortedOrgans = [...ORGANS].sort((a,b) => a.rate - b.rate);
+    sortedOrgans.forEach(o => {
+      const points = o.cumulative.map((v, a) => xScale(a) + ',' + yScale(v));
+      svg.appendChild(el('polyline', { points: points.join(' '), class:'organ-line', style:'stroke:' + o.color }));
+    });
+
+    sortedOrgans.forEach(o => {
+      o.events.forEach(ev => {
+        const cx = xScale(ev.age), cy = yScale(ev.value);
+        const r = ev.type === 'cancer' ? 6 : 4;
+        svg.appendChild(el('circle', { cx, cy, r, class: ev.type === 'cancer' ? 'event-cancer' : 'event-hit' }));
+      });
+    });
+
+    updateLegend(sortedOrgans);
+  }
+
+  function updateLegend(sortedOrgans){
+    const legend = document.getElementById('legend');
+    legend.innerHTML = '';
+    sortedOrgans.forEach(o => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      let statusHtml = '<span class="legend-status ok">watching</span>';
+      if (o.state === 1) statusHtml = '<span class="legend-status hit">one hit</span>';
+      if (o.state === 2){
+        const cancerAge = o.events.find(e => e.type === 'cancer');
+        statusHtml = '<span class="legend-status cancer">cancer @ ' + (cancerAge ? cancerAge.age : '?') + '</span>';
+      }
+      item.innerHTML =
+        '<span class="legend-swatch" style="background:' + o.color + '"></span>' +
+        '<span class="legend-name">' + o.name + '</span>' +
+        '<span class="legend-rate">rate ' + o.rate.toFixed(2) + '</span>' +
+        statusHtml;
+      legend.appendChild(item);
+    });
+  }
+
+  function updateStats(){
+    document.getElementById('statAge').textContent = age;
+    document.getElementById('statHit').textContent = ORGANS.filter(o => o.state === 1).length;
+    document.getElementById('statCancer').textContent = ORGANS.filter(o => o.state === 2).length;
+    document.getElementById('statFirst').textContent = firstTumor ? (firstTumor.organ + ' @ ' + firstTumor.age) : '—';
+  }
+
+  function startLoop(){ stopLoop(); tickHandle = setInterval(tick, 450); }
+  function stopLoop(){ if (tickHandle){ clearInterval(tickHandle); tickHandle = null; } }
+
+  playPauseBtn.addEventListener('click', function(){
+    if (age >= MAX_AGE) return;
+    isPlaying = !isPlaying;
+    this.textContent = isPlaying ? 'Pause' : 'Play';
+    if (isPlaying) startLoop(); else stopLoop();
+  });
+
+  resetBtn.addEventListener('click', function(){
+    resetAll();
+    isPlaying = true;
+    playPauseBtn.textContent = 'Pause';
+    startLoop();
+  });
+
+  inheritedToggle.addEventListener('change', function(){
+    document.getElementById('toggleState').textContent = this.checked
+      ? 'On — one hit present from birth'
+      : 'Off — no inherited risk';
+    resetAll();
+    if (isPlaying) startLoop();
+  });
+
+  agingSlider.addEventListener('input', updateAgingReadout);
+  function updateAgingReadout(){
+    const agingVal = +agingSlider.value;
+    const divBurdenAt100 = inflammFactor(100, agingVal);
+    document.getElementById('agingMult').textContent = divBurdenAt100.toFixed(1);
+  }
+  mutagenSlider.addEventListener('input', function(){
+    const mult = 1 + (this.value/100) * 14;
+    document.getElementById('mutagenMultDisplay').textContent = mult.toFixed(1);
+  });
+  repairSlider.addEventListener('input', updateRepairReadout);
+  function updateRepairReadout(){
+    const repairVal = +repairSlider.value;
+    document.getElementById('repairVal').textContent = repairVal;
+    const baseCatchPct = (repairVal/100) * 97;
+    const agedCatchPct = baseCatchPct * immuneAgeFactor(100);
+    document.getElementById('repairAgeDisplay').textContent = Math.round(agedCatchPct);
+  }
+
+  updateAgingReadout();
+  document.getElementById('mutagenMultDisplay').textContent = (1 + (mutagenSlider.value/100) * 14).toFixed(1);
+  updateRepairReadout();
+
+  resetAll();
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion){
+    isPlaying = false;
+    playPauseBtn.textContent = 'Play';
+  } else {
+    startLoop();
+  }
+</script>
+</body>
+</html>
