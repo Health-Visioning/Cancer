@@ -2,7 +2,7 @@
 
 An interactive, browser-based model of how cancer develops over a lifetime — built around a "two dice" analogy for cell division and calibrated against published research on aging, mutagens, DNA repair, and inherited risk.
 
-**Live demo:** _(add your GitHub Pages link here once published — see below)_
+**Live demo:** [https://health-visioning.github.io/Cancer/]
 
 ## What it does
 
