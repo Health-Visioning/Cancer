@@ -14,3 +14,7 @@ An interactive, browser-based model of how cancer develops over a lifetime — b
   - **Repair & immune surveillance** — DNA repair capacity, with age-related immunosenescence
   - **Loaded die** — inherited mutation (Knudson's two-hit hypothesis)
 - Full reference list and an explicit "what this model is missing" section for honesty about its limitations.
+
+## License / attribution
+
+Health Visioning, 2026
