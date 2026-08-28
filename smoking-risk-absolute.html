@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoking &amp; Cancer Risk — Rates by Organ</title>
+<style>
+  :root{
+    --paper:#EEF0EA;
+    --panel:#F8F8F3;
+    --ink:#1C2321;
+    --ink-soft:#4B534C;
+    --line:#C7CBBE;
+    --line-soft:#DADDD1;
+    --slate:#54626A;
+    --accent:#A0402F;
+    --blue:#2F6FB0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 60px;
+  }
+  .app{max-width:900px;margin:0 auto;}
+
+  .eyebrow{
+    font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::after{content:"";flex:1;height:1px;background:var(--line);}
+  h1{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(26px, 4vw, 36px);
+    line-height:1.15;
+    margin:0 0 14px;
+    max-width:22ch;
+  }
+  .lede{
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:64ch;
+    margin:0 0 16px;
+  }
+  .disclaimer{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    padding:12px 16px;
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    margin-bottom:26px;
+  }
+  .disclaimer b{color:var(--ink);font-weight:600;}
+
+  .chart-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:20px 20px 8px;
+    margin-bottom:24px;
+  }
+  .chart-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .chart-title{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:17px;
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  #chartWrap{position:relative;height:420px;}
+
+  .refs{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:16px 18px;
+    margin-bottom:8px;
+  }
+  .refs-title{
+    font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 10px;
+  }
+  .organ-block{
+    padding:12px 0;
+    border-top:1px solid var(--line-soft);
+  }
+  .organ-block:first-child{border-top:none;padding-top:0;}
+  .organ-name{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:14.5px;
+    margin:0 0 6px;
+  }
+  .ref-item{
+    display:flex;
+    gap:10px;
+    padding:5px 0;
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  .ref-tag{
+    flex-shrink:0;
+    font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size:10px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--paper);
+    background:var(--slate);
+    padding:2px 7px;
+    height:fit-content;
+    margin-top:2px;
+  }
+  .organ-block.approx .ref-tag{background:var(--accent);}
+  .ref-body{color:var(--ink-soft);}
+  .ref-body b{color:var(--ink);font-weight:600;}
+  .ref-caveat{
+    margin-top:6px;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  footer{
+    margin-top:30px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    line-height:1.65;
+    color:var(--ink-soft);
+  }
+  footer h2{
+    font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 6px;
+  }
+  footer ul{margin:0;padding-left:18px;}
+  footer li{margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <p class="eyebrow">Smoking &amp; Cancer Risk · Rates by organ</p>
+  <h1>How many extra cancer cases from smoking?</h1>
+  <p class="lede">
+    Two separate, same-sized hypothetical groups — 1,000 people who never smoked, and a
+    different 1,000 people who are current smokers — compared organ by organ.
+  </p>
+  <div class="disclaimer">
+    <b>These are population-level estimates, not a personal prediction.</b>
+    Each pair of bars compares two different groups of the same size, not the same people
+    counted twice. Organs marked "approximate" in the references below use general-population
+    lifetime risk rather than a never-smoker-specific rate, because that finer data wasn't
+    available for every organ.
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Cases per 1,000 people, by organ</div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--blue)"></span>never smoked</span>
+        <span><span class="swatch" style="background:var(--accent)"></span>current smoker</span>
+      </div>
+    </div>
+    <div id="chartWrap"><canvas id="riskChart"></canvas></div>
+  </div>
+
+  <div class="refs">
+    <p class="refs-title">References, by organ</p>
+    <div id="refList"></div>
+  </div>
+
+  <footer>
+    <h2>Methodology</h2>
+    <ul>
+      <li><b>Lung</b> is the one organ here with directly measured absolute risk in both groups — a pooled European cohort/case-control estimate for continuing smokers, and never-smoker incidence data.</li>
+      <li>Every other organ uses a back-calculated never-smoker baseline: general-population lifetime risk, the current-smoker relative risk, and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022) solved for the unexposed rate. This is more internally consistent than multiplying population-average risk directly by a never-smoker-relative RR, but it still assumes former smokers carry no excess risk, which isn't true — so it likely still understates the real gap between a genuine never-smoker and a current smoker, just less severely than the raw population-average approach would.</li>
+      <li>Relative risks are drawn from the most recent meta-analysis available for each organ at the time of writing (2018–2025); where only an older but still-authoritative pooled estimate exists (lung, larynx, esophagus), that's used and noted.</li>
+      <li>Numbers are rounded to whole people per 1,000 for readability; the exposed figure is calculated from the already-rounded baseline so the displayed ratio stays as close as possible to the cited relative risk.</li>
+    </ul>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const ORGANS = {
+  lung: {
+    label: "Lung",
+    base: 10, exp: 140, perN: 1000,
+    approx: false,
+    refs: [
+      { tag:'baseline', text:'<b>~1% (10 per 1,000)</b> — approximate never-smoker lifetime lung cancer risk, extrapolated from Million Women Study incidence data among never-smokers followed in mid-life (Pirie et al., 2013, <i>The Lancet</i>).' },
+      { tag:'smokers', text:'<b>~14% (140 per 1,000)</b> — cumulative risk of lung cancer by age 75 among continuing smokers, pooled European case-control/cohort data (Brown et al., 2012, <i>British Journal of Cancer</i>).' },
+      { tag:'context', text:'Consistent with pooled relative-risk estimates for current smokers, which range roughly 4–16× across recent meta-analyses and cohorts (e.g. Gandini et al., 2008; regional cohort meta-analyses, 2022–2023).' }
+    ],
+    caveat: "Directly measured absolute risk in both groups — the most solid estimate in this set."
+  },
+  larynx: {
+    label: "Larynx",
+    base: 2, exp: 14, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~0.2% (2 per 1,000)</b> — never-smoker baseline <i>backed out</i> from the general-population lifetime risk (0.3%, SEER Cancer Stat Facts), the current-smoker relative risk (6.98×, Gandini et al. 2008), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022), since no study reporting never-smoker incidence for laryngeal cancer specifically was found.' },
+      { tag:'RR', text:'<b>6.98×</b> relative risk for current smokers vs. never-smokers (Gandini et al., 2008, meta-analysis, <i>International Journal of Cancer</i>).' }
+    ],
+    caveat: "No direct never-smoker incidence study was found for this organ — laryngeal cancer in never-smokers is rare enough that it doesn't seem to get the dedicated research attention lung cancer in never-smokers does. The baseline here is back-calculated instead of measured, and still treats former smokers like never-smokers, which likely means even this adjusted estimate understates the true gap somewhat."
+  },
+  oralpharynx: {
+    label: "Oral cavity & pharynx",
+    base: 9, exp: 32, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~0.9% (9 per 1,000)</b> — never-smoker baseline backed out from the general-population lifetime risk (1.2%, SEER Cancer Stat Facts, 2018–2021 data), the current-smoker relative risk (3.58×), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022).' },
+      { tag:'RR', text:'<b>3.58×</b> relative risk for current smokers vs. never-smokers — the most recent pooled estimate available, from a meta-analysis of 115 studies published through February 2025.' }
+    ],
+    caveat: "Backed out the same way as larynx and bladder; still treats former smokers as if they carry no excess risk, so likely understates the true gap somewhat."
+  },
+  esophagus: {
+    label: "Esophagus",
+    base: 4, exp: 14, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~0.4% (4 per 1,000)</b> — never-smoker baseline backed out from the general-population lifetime risk (0.5%, SEER Cancer Stat Facts, 2021–2023 data), the current-smoker relative risk (3.57×), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022).' },
+      { tag:'RR', text:'<b>3.57×</b> relative risk for current smokers vs. never-smokers, pooled upper-digestive-tract estimate (Gandini et al., 2008, <i>International Journal of Cancer</i>).' }
+    ],
+    caveat: "Backed out the same way as larynx and bladder; still treats former smokers as if they carry no excess risk, so likely understates the true gap somewhat."
+  },
+  bladder: {
+    label: "Bladder",
+    base: 19, exp: 66, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~1.9% (19 per 1,000)</b> — never-smoker baseline <i>backed out</i> from the general-population lifetime risk (2.4%, SEER Cancer Stat Facts), the current-smoker relative risk (3.47×, Al-Zalabani et al. 2015), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022), since no study reporting never-smoker incidence for bladder cancer specifically was found.' },
+      { tag:'RR', text:'<b>3.47×</b> relative risk for current smokers vs. never-smokers (Al-Zalabani et al., 2015, meta-analysis of 107 studies, <i>European Urology</i>).' }
+    ],
+    caveat: "No direct never-smoker incidence study was found for this organ either. The baseline is back-calculated the same way as larynx, and carries the same limitation: former smokers are treated as if they carry no excess risk, which they do, so this likely still understates the true gap somewhat."
+  },
+  kidney: {
+    label: "Kidney",
+    base: 18, exp: 24, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~1.8% (18 per 1,000)</b> — never-smoker baseline backed out from the approximate general-population lifetime risk (1.9%, SEER Cancer Stat Facts), the current-smoker relative risk (1.36×), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022).' },
+      { tag:'RR', text:'<b>1.36×</b> relative risk for current smokers vs. never-smokers (Al-Zalabani et al., 2015, meta-analysis of 107 studies, <i>European Urology</i>).' }
+    ],
+    caveat: "Backed out the same way as larynx and bladder. Kidney's relative risk is modest, so this adjustment barely moves the number from the raw population baseline — worth noting that at least one large Korean cohort found no significant smoking–kidney cancer association at all, so this organ's link is less consistent across studies than the others here."
+  },
+  pancreas: {
+    label: "Pancreas",
+    base: 14, exp: 25, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~1.4% (14 per 1,000)</b> — never-smoker baseline backed out from the general-population lifetime risk (1.5%, SEER Cancer Stat Facts), the current-smoker relative risk (1.8×), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022).' },
+      { tag:'RR', text:'<b>1.8×</b> relative risk for current smokers vs. never-smokers (meta-analysis of 78 studies, 2018, <i>Langenbecks Archives of Surgery</i>).' }
+    ],
+    caveat: "Backed out the same way as larynx and bladder; still treats former smokers as if they carry no excess risk, so likely understates the true gap somewhat."
+  },
+  colorectum: {
+    label: "Colorectum",
+    base: 40, exp: 46, perN: 1000,
+    approx: true,
+    refs: [
+      { tag:'baseline', text:'<b>~4.0% (40 per 1,000)</b> — never-smoker baseline backed out from the approximate general-population lifetime risk (4.1%, American Cancer Society estimate), the current-smoker relative risk (1.14×), and U.S. current-smoking prevalence (~11.6%, CDC/NHIS 2022).' },
+      { tag:'RR', text:'<b>1.14×</b> relative risk for current smokers vs. never-smokers — the most recent pooled estimate, from a meta-analysis of 188 studies published in 2019 (<i>American Journal of Gastroenterology</i>).' }
+    ],
+    caveat: "The smallest smoking-associated effect covered here — with a relative risk this close to 1, the back-calculation barely shifts the number from the raw population baseline."
+  }
+};
+
+const organKeys = Object.keys(ORGANS);
+
+new Chart(document.getElementById('riskChart'), {
+  type: 'bar',
+  data: {
+    labels: organKeys.map(k => ORGANS[k].label),
+    datasets: [
+      {
+        label: 'Never smoked',
+        data: organKeys.map(k => ORGANS[k].base),
+        backgroundColor: '#2F6FB0',
+        borderRadius: 3,
+        maxBarThickness: 26
+      },
+      {
+        label: 'Current smoker',
+        data: organKeys.map(k => ORGANS[k].exp),
+        backgroundColor: '#A0402F',
+        borderRadius: 3,
+        maxBarThickness: 26
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} per 1,000`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'cases per 1,000 people', color: '#4B534C', font: { size: 12 } },
+        grid: { color: '#DADDD1' },
+        ticks: { color: '#4B534C' }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: '#1C2321', font: { size: 11 } }
+      }
+    }
+  }
+});
+
+const refList = document.getElementById('refList');
+organKeys.forEach(key=>{
+  const o = ORGANS[key];
+  const block = document.createElement('div');
+  block.className = 'organ-block' + (o.approx ? ' approx' : '');
+  let refsHtml = o.refs.map(r =>
+    `<div class="ref-item"><span class="ref-tag">${r.tag}</span><span class="ref-body">${r.text}</span></div>`
+  ).join('');
+  block.innerHTML = `<p class="organ-name">${o.label}</p>${refsHtml}<p class="ref-caveat">${o.caveat}</p>`;
+  refList.appendChild(block);
+});
+</script>
+</body>
+</html>

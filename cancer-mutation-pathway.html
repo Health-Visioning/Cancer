@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How mutations lead to cancer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #ffffff;
+  }
+  body {
+    color: #1a1a1a;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .wrap { width: 720px; max-width: 100%; background: #ffffff; }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 28px;
+    color: #1a1a1a;
+  }
+  svg { width: 100%; height: auto; overflow: visible; background: #ffffff; }
+
+  .box { fill: #f7f7f5; stroke: #b4b2a9; stroke-width: 1; transition: stroke 0.2s, fill 0.2s; cursor: pointer; }
+  .box:hover { stroke: #5f5e5a; fill: #efefec; }
+  .th { font-size: 14px; font-weight: 600; fill: #1a1a1a; }
+  .ts { font-size: 12px; fill: #5f5e5a; }
+
+  .c-coral .box { fill: #faece7; stroke: #d85a30; }
+  .c-coral .th { fill: #712b13; }
+  .c-coral .ts { fill: #993c1d; }
+
+  .c-blue .box { fill: #e6f1fb; stroke: #378add; }
+  .c-blue .th { fill: #0c447c; }
+  .c-blue .ts { fill: #185fa5; }
+
+  .c-teal .box { fill: #e1f5ee; stroke: #1d9e75; }
+  .c-teal .th { fill: #085041; }
+  .c-teal .ts { fill: #0f6e56; }
+
+  .c-red .box { fill: #fcebeb; stroke: #e24b4a; }
+  .c-red .th { fill: #791f1f; }
+  .c-red .ts { fill: #a32d2d; }
+
+  .arrow-line { stroke: #b4b2a9; stroke-width: 1; fill: none; }
+
+  .caption {
+    text-align: center;
+    font-size: 14px;
+    color: #5f5e5a;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+
+  .panel-note {
+    text-align: center;
+    font-size: 13px;
+    color: #8a8a84;
+    margin-top: 24px;
+  }
+  .info-panel {
+    margin-top: 8px;
+    height: 260px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid #e5e4de;
+    background: #fafaf8;
+    transition: border-color 0.2s, background 0.2s;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .info-panel:has(.info-body h4) {
+    justify-content: flex-start;
+  }
+  .info-panel.c-coral { border-color: #d85a30; background: #faece7; }
+  .info-panel.c-blue { border-color: #378add; background: #e6f1fb; }
+  .info-panel.c-teal { border-color: #1d9e75; background: #e1f5ee; }
+  .info-panel.c-red { border-color: #e24b4a; background: #fcebeb; }
+  .info-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1a1a1a;
+  }
+  .info-body {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #3d3d3a;
+  }
+  .info-body h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 10px 0 4px;
+    color: #1a1a1a;
+  }
+  .info-body h4:first-child { margin-top: 0; }
+  .info-body p {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #3d3d3a;
+    margin: 4px 0;
+  }
+  .info-body ul {
+    margin: 4px 0 0 18px;
+    padding: 0;
+  }
+  .info-body li {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #3d3d3a;
+    margin-bottom: 2px;
+  }
+  .info-hint {
+    font-size: 13px;
+    color: #8a8a84;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>How mutations lead to cancer</h1>
+  <svg viewBox="0 0 680 340" role="img">
+    <title>How mutations lead to cancer</title>
+    <desc>A normal cell accumulates mutations in proto-oncogenes, tumor suppressor genes, and DNA repair genes, which together can produce a cancer cell.</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#b4b2a9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <g class="node">
+      <rect class="box" x="250" y="20" width="180" height="44" rx="8"/>
+      <text class="th" x="340" y="42" text-anchor="middle" dominant-baseline="central">Normal cell</text>
+    </g>
+
+    <path class="arrow-line" d="M340 64 V90 M340 90 H140 M340 90 H500"/>
+    <line x1="140" y1="90" x2="140" y2="108" class="arrow-line" marker-end="url(#arrow)"/>
+    <line x1="500" y1="90" x2="500" y2="108" class="arrow-line" marker-end="url(#arrow)"/>
+    <line x1="340" y1="90" x2="340" y2="108" class="arrow-line" marker-end="url(#arrow)"/>
+
+    <g class="node c-coral" data-category="coral"
+        onmouseenter="showInfo('coral')" onmouseleave="scheduleClear()" onclick="showInfo('coral', true)">
+      <rect class="box" x="50" y="110" width="180" height="56" rx="8"/>
+      <text class="th" x="140" y="128" text-anchor="middle" dominant-baseline="central">Proto-oncogene</text>
+      <text class="ts" x="140" y="146" text-anchor="middle" dominant-baseline="central">Gas pedal stuck to the floor</text>
+    </g>
+
+    <g class="node c-blue" data-category="blue"
+        onmouseenter="showInfo('blue')" onmouseleave="scheduleClear()" onclick="showInfo('blue', true)">
+      <rect class="box" x="250" y="110" width="180" height="56" rx="8"/>
+      <text class="th" x="340" y="128" text-anchor="middle" dominant-baseline="central">Tumor suppressor</text>
+      <text class="ts" x="340" y="146" text-anchor="middle" dominant-baseline="central">Brakes disabled</text>
+    </g>
+
+    <g class="node c-teal" data-category="teal"
+        onmouseenter="showInfo('teal')" onmouseleave="scheduleClear()" onclick="showInfo('teal', true)">
+      <rect class="box" x="450" y="110" width="180" height="56" rx="8"/>
+      <text class="th" x="540" y="128" text-anchor="middle" dominant-baseline="central">DNA repair gene</text>
+      <text class="ts" x="540" y="146" text-anchor="middle" dominant-baseline="central">Errors go uncorrected</text>
+    </g>
+
+    <path class="arrow-line" d="M140 166 V190 M500 166 V190 M140 190 H340 M500 190 H340"/>
+    <line x1="340" y1="166" x2="340" y2="208" class="arrow-line" marker-end="url(#arrow)"/>
+    <line x1="340" y1="190" x2="340" y2="208" class="arrow-line" marker-end="url(#arrow)"/>
+
+    <g class="node c-red" data-category="red"
+        onmouseenter="showInfo('red')" onmouseleave="scheduleClear()" onclick="showInfo('red', true)">
+      <rect class="box" x="230" y="210" width="220" height="56" rx="8"/>
+      <text class="th" x="340" y="228" text-anchor="middle" dominant-baseline="central">Cancer cell</text>
+      <text class="ts" x="340" y="246" text-anchor="middle" dominant-baseline="central">Uncontrolled growth, spread</text>
+    </g>
+
+    <text class="ts" x="340" y="300" text-anchor="middle">Enough of these mutations accumulating in one cell line drives cancer</text>
+  </svg>
+
+  <p class="panel-note">Click or hover over a box above to show its description.</p>
+  <div class="info-panel" id="infoPanel" onmouseenter="cancelClear()" onmouseleave="scheduleClear()">
+    <div class="info-title" id="infoTitle">Hover or click a gene type</div>
+    <div class="info-body" id="infoBody">
+      <span class="info-hint">Select a box to begin.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const info = {
+    coral: {
+      title: 'Proto-oncogene → oncogene',
+      body: 'Proto-oncogenes normally promote cell division in a controlled way. A mutation can turn one into an oncogene, which is stuck in the "on" position, telling the cell to divide constantly — like a gas pedal stuck to the floor.'
+    },
+    blue: {
+      title: 'Tumor suppressor gene',
+      body: 'Tumor suppressor genes normally act as brakes, stopping division when something\u2019s wrong (like DNA damage) or triggering the cell to self-destruct. Mutations can disable these brakes. A well-known example is TP53 (nicknamed "the guardian of the genome"), which normally halts damaged cells or pushes them toward programmed death (apoptosis).'
+    },
+    teal: {
+      title: 'DNA repair gene',
+      body: 'DNA repair genes normally fix mistakes made when DNA copies itself. If these are mutated, errors pile up faster than they can be corrected — like a highway crash pile-up that keeps going, each new collision making the next one more likely. BRCA1 and BRCA2 are examples — when mutated, they raise the risk of breast and ovarian cancer because damaged DNA doesn\u2019t get repaired properly.'
+    },
+    red: {
+      title: 'Cancer cell',
+      html: '<h4>Why one mutation isn\u2019t usually enough</h4>' +
+            '<p>A single mutation rarely causes cancer on its own. Cells have multiple layers of safeguards, so cancer typically develops through an accumulation of several mutations over time — which is part of why cancer risk rises with age, and why carcinogens (like UV light, tobacco smoke, or certain viruses) that increase mutation rates raise cancer risk.</p>' +
+            '<h4>What happens once enough damage accumulates</h4>' +
+            '<p>A cell that has lost enough of these controls can:</p>' +
+            '<ul>' +
+            '<li>Divide uncontrollably (ignoring normal "stop" signals)</li>' +
+            '<li>Evade apoptosis (avoid programmed cell death it would normally undergo)</li>' +
+            '<li>Avoid immune detection</li>' +
+            '<li>Trigger angiogenesis — growth of new blood vessels to feed the tumor</li>' +
+            '<li>Eventually invade nearby tissue and spread (metastasize) to other parts of the body</li>' +
+            '</ul>' +
+            '<h4>The result</h4>' +
+            '<p>This forms a tumor — a mass of cells dividing without the normal restraints. Whether it\u2019s benign (stays localized) or malignant (invades and spreads) depends on which combination of genes were damaged and how completely the cell\u2019s control systems have broken down.</p>'
+    }
+  };
+
+  let locked = false;
+  let clearTimer = null;
+
+  function cancelClear() {
+    clearTimeout(clearTimer);
+  }
+
+  function scheduleClear() {
+    if (locked) return;
+    clearTimer = setTimeout(clearInfo, 180);
+  }
+
+  function showInfo(key, lock) {
+    cancelClear();
+    if (locked && !lock) return;
+    if (lock) locked = (locked === key) ? false : key;
+    const active = lock ? locked : key;
+    const panel = document.getElementById('infoPanel');
+    const titleEl = document.getElementById('infoTitle');
+    const bodyEl = document.getElementById('infoBody');
+
+    panel.className = 'info-panel c-' + (active || key);
+    if (!active && lock) {
+      titleEl.textContent = 'Hover or click a gene type';
+      bodyEl.innerHTML = '<span class="info-hint">Select a box to begin.</span>';
+      panel.className = 'info-panel';
+      return;
+    }
+    const data = info[active || key];
+    titleEl.textContent = data.title;
+    if (data.html) {
+      bodyEl.innerHTML = data.html;
+    } else {
+      bodyEl.textContent = data.body;
+    }
+    panel.scrollTop = 0;
+  }
+
+  function clearInfo() {
+    if (locked) return;
+    const panel = document.getElementById('infoPanel');
+    panel.className = 'info-panel';
+    document.getElementById('infoTitle').textContent = 'Hover or click a gene type';
+    document.getElementById('infoBody').innerHTML = '<span class="info-hint">Select a box to begin.</span>';
+  }
+</script>
+</body>
+</html>
