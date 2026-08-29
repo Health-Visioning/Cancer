@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your DNA Is a Cookbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Karla:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --card:#F1E7D0;
+    --card-deep:#E8D9B8;
+    --ink:#2B2118;
+    --ink-soft:#6B5D4B;
+    --line:#D0BE96;
+    --teal:#2F6E5E;
+    --teal-deep:#234F43;
+    --mustard:#C98A2E;
+    --cherry:#A6362C;
+    --paper-white:#FBF7EC;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--card);
+    color:var(--ink);
+    font-family:'Karla', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 80px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:56px 20px 40px;
+    text-align:center;
+    background:linear-gradient(180deg, var(--card-deep), var(--card));
+  }
+  .hero-eyebrow{
+    font-family:'Karla', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin:0 0 14px;
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(32px, 8vw, 46px);
+    line-height:1.1;
+    margin:0 0 16px;
+  }
+  .hero p{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    max-width:38ch;
+    margin:0 auto;
+  }
+  .hero-icon{margin:28px auto 0;width:120px;height:120px;}
+
+  /* ---------- Section shell ---------- */
+  section.level{
+    padding:44px 20px 8px;
+  }
+  .level-eyebrow{
+    font-family:'Karla', sans-serif;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin:0 0 8px;
+  }
+  .level h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    line-height:1.2;
+    margin:0 0 10px;
+  }
+  .level p.desc{
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+    max-width:52ch;
+  }
+  .stage{
+    background:var(--paper-white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:24px 20px;
+    box-shadow:0 2px 0 var(--line);
+  }
+
+  /* ---------- Zoom connector (signature element) ---------- */
+  .zoom-connector{
+    display:flex;
+    justify-content:center;
+    margin:0 auto;
+  }
+  .zoom-connector svg{display:block;}
+
+  /* ---------- Chromosome grid ---------- */
+  #chromGrid{
+    display:grid;
+    grid-template-columns:repeat(6, 1fr);
+    gap:8px 10px;
+    justify-items:center;
+    margin-bottom:6px;
+  }
+  .chrom-pair{display:flex;gap:2px;align-items:flex-end;cursor:default;}
+  .chrom-bar{width:7px;border-radius:3px;background:var(--teal);opacity:0.35;}
+  .chrom-pair.highlight .chrom-bar{background:var(--mustard);opacity:1;}
+  .chrom-caption{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+  .chrom-caption b{color:var(--ink);}
+
+  /* ---------- Recipe list (genes) ---------- */
+  .recipe-toc{list-style:none;margin:0;padding:0;}
+  .recipe-toc li{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:14.5px;
+    color:var(--ink-soft);
+  }
+  .recipe-toc li:last-child{border-bottom:none;}
+  .recipe-toc li.highlight{
+    color:var(--ink);
+    font-weight:700;
+  }
+  .recipe-toc li.highlight span.tag{
+    font-family:'Caveat', cursive;
+    font-size:16px;
+    color:var(--cherry);
+    font-weight:600;
+  }
+  .recipe-toc .dots{
+    flex:1;
+    border-bottom:1px dotted var(--line);
+    margin:0 8px 4px;
+  }
+
+  /* ---------- DNA ladder ---------- */
+  .ladder-caption{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+  .typo-note{
+    font-family:'Caveat', cursive;
+    font-size:20px;
+    color:var(--cherry);
+    display:inline-block;
+    transform:rotate(-4deg);
+  }
+
+  /* ---------- Allele cards ---------- */
+  .allele-row{display:flex;gap:14px;}
+  .allele-card{
+    flex:1;
+    background:var(--paper-white);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px 14px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .allele-card::before{
+    content:"";
+    position:absolute;
+    top:22px;left:0;right:0;
+    height:1px;
+    background:var(--cherry);
+    opacity:0.5;
+  }
+  .allele-card::after{
+    content:"";
+    position:absolute;
+    top:0;bottom:0;left:26px;
+    width:1px;
+    background:#B9C9D9;
+    opacity:0.6;
+  }
+  .allele-from{
+    font-family:'Karla';
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    margin:0 0 14px;
+    padding-left:16px;
+  }
+  .allele-title{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:15px;
+    margin:0 0 10px;
+    padding-left:16px;
+  }
+  .allele-line{
+    font-size:13px;
+    color:var(--ink-soft);
+    padding-left:16px;
+    line-height:1.5;
+  }
+  .allele-diff{
+    background:rgba(166,54,44,0.14);
+    color:var(--cherry);
+    font-weight:700;
+    padding:0 3px;
+    border-radius:2px;
+  }
+  .allele-note{
+    margin-top:16px;
+    font-size:13px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    background:var(--card-deep);
+    border-radius:6px;
+    padding:10px 12px;
+  }
+
+  /* ---------- Dish ---------- */
+  .dish-row{display:flex;align-items:center;gap:18px;}
+  .dish-label{font-size:14.5px;color:var(--ink-soft);line-height:1.55;}
+  .dish-label b{color:var(--ink);}
+
+  /* ---------- Glossary ---------- */
+  .glossary{
+    margin-top:56px;
+    padding-top:24px;
+    border-top:2px solid var(--line);
+  }
+  .glossary h3{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 16px;
+  }
+  .glossary-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px 16px;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .glossary-row:first-child{
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+    border-bottom:2px solid var(--line);
+  }
+  .glossary-row span:first-child{color:var(--ink);font-weight:600;}
+  .glossary-row span:last-child{color:var(--ink-soft);}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Genetics, explained through the kitchen</p>
+    <h1>Your DNA is basically a cookbook.</h1>
+    <p>Every cell in your body carries a full copy of it. Let's zoom in, one layer at a time, from the whole collection down to a single typo.</p>
+    <svg class="hero-icon" viewBox="0 0 120 120" fill="none">
+      <rect x="28" y="24" width="64" height="80" rx="4" fill="#FBF7EC" stroke="#2B2118" stroke-width="2"/>
+      <rect x="28" y="24" width="10" height="80" rx="2" fill="#2F6E5E"/>
+      <line x1="46" y1="42" x2="82" y2="42" stroke="#D0BE96" stroke-width="2"/>
+      <line x1="46" y1="54" x2="82" y2="54" stroke="#D0BE96" stroke-width="2"/>
+      <line x1="46" y1="66" x2="76" y2="66" stroke="#D0BE96" stroke-width="2"/>
+      <line x1="46" y1="78" x2="82" y2="78" stroke="#D0BE96" stroke-width="2"/>
+      <line x1="46" y1="90" x2="70" y2="90" stroke="#D0BE96" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="wrap">
+
+    <!-- LEVEL 0: the kitchen -->
+    <section class="level">
+      <p class="level-eyebrow">Where it's kept</p>
+      <h2>The cookbook lives in the kitchen.</h2>
+      <p class="desc">Inside almost every cell is a <b style="color:var(--ink)">nucleus</b> — a safe, sealed room, like a kitchen where the family cookbook is kept so it never gets lost or damaged.</p>
+    </section>
+
+    <div class="zoom-connector">
+      <svg width="120" height="46" viewBox="0 0 120 46">
+        <path d="M50 0 L14 46 M70 0 L106 46" stroke="#2F6E5E" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- LEVEL 1: two of everything (chromosomes + alleles combined) -->
+    <section class="level">
+      <p class="level-eyebrow">Inside the kitchen</p>
+      <h2>You actually have two editions of every recipe.</h2>
+      <p class="desc">Your cookbook isn't one set — it's two full sets bound together, one complete copy from your mother and one from your father. That means every single recipe inside exists in two editions, usually near-identical, sometimes with a real difference in the instructions. A different edition of the same recipe is called an <b style="color:var(--ink)">allele</b>.</p>
+      <div class="stage">
+        <div id="chromGrid"></div>
+        <p class="chrom-caption">The two sets bind together into 23 matching pairs, <b>one pair highlighted</b> — let's open it and compare editions.</p>
+        <div class="allele-row" style="margin-top:18px;">
+          <div class="allele-card">
+            <p class="allele-from">Mom's edition</p>
+            <p class="allele-title">Eye Color</p>
+            <p class="allele-line">Use <span class="allele-diff">low</span> melanin in the iris.</p>
+          </div>
+          <div class="allele-card">
+            <p class="allele-from">Dad's edition</p>
+            <p class="allele-title">Eye Color</p>
+            <p class="allele-line">Use <span class="allele-diff">high</span> melanin in the iris.</p>
+          </div>
+        </div>
+        <p class="allele-note">Sometimes only one edition's instructions actually get followed when the dish is made — that's what "dominant" and "recessive" mean.</p>
+      </div>
+    </section>
+
+    <div class="zoom-connector">
+      <svg width="140" height="46" viewBox="0 0 140 46">
+        <path d="M60 0 L10 46 M80 0 L130 46" stroke="#2F6E5E" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- LEVEL 2: genes -->
+    <section class="level">
+      <p class="level-eyebrow">Opening one edition</p>
+      <h2>Each set holds hundreds of recipes.</h2>
+      <p class="desc">A single recipe inside is a <b style="color:var(--ink)">gene</b> — instructions for making one particular thing, like a pigment, an enzyme, or a hormone.</p>
+      <div class="stage">
+        <ul class="recipe-toc">
+          <li><span>Blood Clotting</span><span class="dots"></span><span>p. 12</span></li>
+          <li><span>Lactose Digestion</span><span class="dots"></span><span>p. 34</span></li>
+          <li class="highlight"><span>Eye Color <span class="tag">← this one</span></span><span class="dots"></span><span>p. 41</span></li>
+          <li><span>Insulin Production</span><span class="dots"></span><span>p. 58</span></li>
+          <li><span>Height Regulation</span><span class="dots"></span><span>p. 77</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="zoom-connector">
+      <svg width="160" height="46" viewBox="0 0 160 46">
+        <path d="M65 0 L6 46 M95 0 L154 46" stroke="#2F6E5E" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- LEVEL 3: DNA letters / mutation -->
+    <section class="level">
+      <p class="level-eyebrow">Reading the recipe</p>
+      <h2>The recipe is written in a four-letter alphabet.</h2>
+      <p class="desc">Zoom in far enough and a gene is just a long sequence of four letters — A, T, C and G — the actual <b style="color:var(--ink)">DNA</b> spelling out the instructions.</p>
+      <div class="stage">
+        <svg id="ladderSvg" width="100%" height="110" viewBox="0 0 560 110"></svg>
+        <p class="ladder-caption">One letter got copied wrong — <span class="typo-note">a mutation!</span></p>
+      </div>
+    </section>
+
+    <div class="zoom-connector">
+      <svg width="140" height="46" viewBox="0 0 140 46">
+        <path d="M55 0 L20 46 M85 0 L120 46" stroke="#2F6E5E" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- LEVEL 4: the dish -->
+    <section class="level">
+      <p class="level-eyebrow">The finished dish</p>
+      <h2>Follow the recipe, and out comes the dish.</h2>
+      <p class="desc">A gene's instructions get followed to build a <b style="color:var(--ink)">protein</b> — the actual dish. What you can see and measure as a result, like eye color itself, is the <b style="color:var(--ink)">trait</b>.</p>
+      <div class="stage dish-row">
+        <svg width="70" height="70" viewBox="0 0 70 70" style="flex-shrink:0;">
+          <circle cx="35" cy="35" r="32" fill="#FBF7EC" stroke="#2B2118" stroke-width="2"/>
+          <circle cx="35" cy="35" r="21" fill="none" stroke="#D0BE96" stroke-width="2"/>
+          <circle cx="35" cy="35" r="9" fill="#6B4A2E"/>
+        </svg>
+        <p class="dish-label"><b>Brown eyes</b> — the dish that came out of this particular recipe, this particular edition, this particular volume, of your cookbook.</p>
+      </div>
+    </section>
+
+    <!-- GLOSSARY -->
+    <div class="glossary">
+      <h3>Quick reference</h3>
+      <div class="glossary-row"><span>DNA term</span><span>Cookbook term</span></div>
+      <div class="glossary-row"><span>Nucleus</span><span>The kitchen</span></div>
+      <div class="glossary-row"><span>Genome</span><span>The whole cookbook collection</span></div>
+      <div class="glossary-row"><span>Chromosome</span><span>One volume</span></div>
+      <div class="glossary-row"><span>Gene</span><span>One recipe</span></div>
+      <div class="glossary-row"><span>Base (A,T,C,G)</span><span>A letter in the recipe</span></div>
+      <div class="glossary-row"><span>Allele</span><span>One edition of a recipe</span></div>
+      <div class="glossary-row"><span>Mutation</span><span>A typo</span></div>
+      <div class="glossary-row"><span>Protein</span><span>The dish that gets made</span></div>
+      <div class="glossary-row"><span>Trait</span><span>How the dish turns out</span></div>
+    </div>
+
+    <p style="text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:28px;">Health Visioning, 2026</p>
+
+  </div>
+
+<script>
+// ---------- chromosome grid (23 pairs, one highlighted) ----------
+const chromColors = ['#2F6E5E','#4A7A8C','#7A6A4A','#5C7A4A','#8C5A6A','#4A5C8C'];
+const grid = document.getElementById('chromGrid');
+for(let i=0;i<23;i++){
+  const pair = document.createElement('div');
+  pair.className = 'chrom-pair' + (i===8 ? ' highlight' : '');
+  const h1 = 18 + (i % 5)*3;
+  const h2 = 18 + ((i+2) % 5)*3;
+  const color = chromColors[i % chromColors.length];
+  pair.innerHTML = `
+    <div class="chrom-bar" style="height:${h1}px;${i===8?'':`background:${color};`}"></div>
+    <div class="chrom-bar" style="height:${h2}px;${i===8?'':`background:${color};`}"></div>
+  `;
+  grid.appendChild(pair);
+}
+
+// ---------- DNA ladder with one mutated rung ----------
+const ladder = document.getElementById('ladderSvg');
+const bases = ['A','T','G','C','T','A','G','C','A','T','C','G','T','A'];
+const mutateIndex = 6; // this rung shows the typo
+const n = bases.length;
+const startX = 20, endX = 540, y1 = 20, y2 = 90;
+const step = (endX - startX) / (n - 1);
+let svgParts = '';
+svgParts += `<line x1="${startX}" y1="${y1}" x2="${endX}" y2="${y1}" stroke="#2F6E5E" stroke-width="3"/>`;
+svgParts += `<line x1="${startX}" y1="${y2}" x2="${endX}" y2="${y2}" stroke="#2F6E5E" stroke-width="3"/>`;
+bases.forEach((b,i)=>{
+  const x = startX + i*step;
+  const isMutation = i === mutateIndex;
+  const rungColor = isMutation ? '#A6362C' : '#C98A2E';
+  svgParts += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${rungColor}" stroke-width="${isMutation?4:2}"/>`;
+  svgParts += `<circle cx="${x}" cy="${y1}" r="3" fill="#2F6E5E"/>`;
+  svgParts += `<circle cx="${x}" cy="${y2}" r="3" fill="#2F6E5E"/>`;
+  svgParts += `<text x="${x}" y="${y1-8}" text-anchor="middle" font-family="Karla, sans-serif" font-size="11" font-weight="700" fill="${isMutation?'#A6362C':'#6B5D4B'}">${b}</text>`;
+  if(isMutation){
+    svgParts += `<text x="${x}" y="${y2+22}" text-anchor="middle" font-family="Caveat, cursive" font-size="16" fill="#A6362C">typo!</text>`;
+  }
+});
+ladder.innerHTML = svgParts;
+</script>
+</body>
+</html>
